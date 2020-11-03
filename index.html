@@ -1,161 +1,525 @@
 <!DOCTYPE html>
 <html lang="en">
 	<head>
-		<title>three.js webgl - loaders - OBJ loader</title>
+		<title>three.js webgl - multiple elements</title>
 		<meta charset="utf-8">
 		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
 		<link type="text/css" rel="stylesheet" href="main.css">
-	</head>
+		<style>
+			* {
+				box-sizing: border-box;
+				-moz-box-sizing: border-box;
+			}
 
+			body {
+				background-color: #eaeaea;
+				color: #444;
+			}
+
+			a {
+				color: #08f;
+			}
+
+			#content {
+				position: absolute;
+				top: 0; width: 100%;
+				z-index: 1;
+				padding: 3em 0 0 0;
+			}
+
+			#c {
+				position: absolute;
+				left: 0;
+				width: 100%;
+				height: 100%;
+			}
+
+			.list-item {
+				display: inline-block;
+				margin: 2em;
+				padding: 2em;
+				box-shadow: 1px 2px 4px 0px rgba(0,0,0,0.25);
+			}
+
+			.list-item > div:nth-child(1) {
+				width: 400px;
+				height: 400px;
+			}
+
+			.list-item > div:nth-child(2) {
+				color: #888;
+				font-family: sans-serif;
+				font-size: large;
+				width: 200px;
+				margin-top: 0.5em;
+			}
+		</style>
+	</head>
 	<body>
-		<div id="info">
-		<a href="https://threejs.org" target="_blank" rel="noopener">three.js</a> - OBJLoader test
+
+		<canvas id="c"></canvas>
+
+
+		<div id="content">
+			<div id="info"><a href="https://threejs.org" target="_blank" rel="noopener">three.js</a> - multiple elements - webgl</div>
+
 		</div>
 
+
+
+		
 		<script type="module">
 
 			import * as THREE from './build/three.module.js';
 
-			import { OBJLoader } from './examples/jsm/loaders/OBJLoader.js';
+			import { GLTFLoader } from './examples/jsm/loaders/GLTFLoader.js';
 
-			var container;
+			import { RGBELoader } from './examples/jsm/loaders/RGBELoader.js';
+			import { RoughnessMipmapper } from './examples/jsm/utils/RoughnessMipmapper.js';
 
-			var camera, scene, renderer;
+			import { OrbitControls } from './examples/jsm/controls/OrbitControls.js';
 
-			var mouseX = 0, mouseY = 0;
 
-			var windowHalfX = window.innerWidth / 2;
-			var windowHalfY = window.innerHeight / 2;
 
-			var object;
+
+			var canvas;
+
+			var scenes = [], renderer;
+
+			var light, light2, camera;
+
+			var clock = new THREE.Clock();
+
+			var mesh;
 
 			init();
 			animate();
 
-
 			function init() {
 
-				container = document.createElement( 'div' );
-				document.body.appendChild( container );
+				canvas = document.getElementById( "c" );
 
-				camera = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 1, 2000 );
-				camera.position.z = 250;
+				
+				var geometries = [
+					new GLTFLoader(),
+					new GLTFLoader(),
+					new GLTFLoader(),
+					new GLTFLoader(),
+					new GLTFLoader(),
+					new GLTFLoader()
+				]; 
+				
+				var models = [
+				'./examples/models/LARA/sketchfab_objects/haida_totem_pole_circa1860-70_section/scene.gltf',
+				'./examples/models/LARA/objects/002_mel_1_fix/scene.gltf',
+				'./examples/models/DamagedHelmet/glTF/DamagedHelmet.gltf',
+				'./examples/models/LARA/objects/002_mel_1_fix_3/scene.gltf',
+				'./examples/models/LARA/objects/003_mel_2/scene.gltf',
+				'./examples/models/LARA/objects/004_zol/LA/scene.gltf'
+				]; 
 
-				// scene
+				// 'models/gltf/LARA/objects/004_zol/scene.gltf',
+				// 'models/gltf/DamagedHelmet/glTF/DamagedHelmet.gltf',
 
-				scene = new THREE.Scene();
+				var sceness =[
+					new THREE.Scene(),
+					new THREE.Scene(),
+					new THREE.Scene(),
+					new THREE.Scene(),
+					new THREE.Scene(),
+					new THREE.Scene()
+				];
 
-				var ambientLight = new THREE.AmbientLight( 0xcccccc, 0.4 );
-				scene.add( ambientLight );
+				
+				/* material */
+				/*
+				var textureLoader = new THREE.TextureLoader();
 
-				var pointLight = new THREE.PointLight( 0xffffff, 0.8 );
-				camera.add( pointLight );
-				scene.add( camera );
+				var diffuseMap = textureLoader.load( "models/gltf/LARA/sketchfab_objects/haida_totem_pole_circa1860-70_section/textures/totem-beaver_metallicRoughness.png" );
+				diffuseMap.encoding = THREE.sRGBEncoding;
 
-				// manager
+				var specularMap = textureLoader.load( "models/gltf/LeePerrySmith/Map-SPEC.jpg" );
+				
+				specularMap.encoding = THREE.sRGBEncoding;
 
-				function loadModel() {
+				var normalMap = textureLoader.load( "models/gltf/LeePerrySmith/Infinite-Level_02_Tangent_SmoothUV.jpg" );
 
-					object.traverse( function ( child ) {
+				var material = new THREE.MeshPhongMaterial( {
+					color: 0xdddddd,
+					specular: 0x222222,
+					shininess: 35,
+					map: diffuseMap,
+					specularMap: specularMap,
+					normalMap: normalMap,
+					normalScale: new THREE.Vector2( 0.8, 0.8 )
+				} );
+				*/
+				/* end_material */
+				
+				const scal = 5;
 
-						if ( child.isMesh ) child.material.map = texture;
+				//var loader_001 = new GLTFLoader();
+				geometries[0].load( models[0], function ( gltf ) {
+					gltf.scene.scale.set(2,2,2) // scale here
+					gltf.scene.position.set(0,0,0)
+					scenes[0].add( gltf.scene );
+				} ); 
+
+				//var loader_001 = new GLTFLoader();
+				geometries[1].load( models[1], function ( gltf ) {
+					gltf.scene.scale.set(scal,scal,scal) // scale here
+					gltf.scene.position.set(0,0,0)
+					//gltf.scene.rotation.set(50,10,0)
+					scenes[1].add( gltf.scene );
+				} ); 
+				
+				geometries[2].load( models[2], function ( gltf ) {
+					gltf.scene.scale.set(scal,scal,scal) // scale here
+					gltf.scene.position.set(0,0,0)
+					//gltf.scene.rotation.set(50,10,0)
+					gltf.castShadow = true; 
+					gltf.receiveShadow = true;
+					scenes[2].add( gltf.scene );
+				} ); 
+
+				geometries[3].load( models[3], function ( gltf ) {
+					gltf.scene.scale.set(scal,scal,scal) // scale here
+					gltf.scene.position.set(0,0,0)
+					//gltf.scene.rotation.set(50,10,0)
+					gltf.castShadow = true; 
+					gltf.receiveShadow = true;
+					scenes[3].add( gltf.scene );
+				} ); 
+
+				geometries[4].load( models[4], function ( gltf ) {
+					gltf.scene.scale.set(scal*2,scal*2,scal*2) // scale here
+					gltf.scene.position.set(0,0,0)
+					//gltf.scene.rotation.set(50,10,0)
+					gltf.castShadow = true; 
+					gltf.receiveShadow = true;
+					scenes[4].add( gltf.scene );
+				} ); 
+
+				geometries[5].load( models[5], function ( gltf ) {
+					gltf.scene.scale.set(scal/1.5,scal/1.5,scal/1.5) // scale here
+					gltf.scene.position.set(0,0,0)
+					//gltf.scene.rotation.set(-150,0,0) // -150 0 0
+					gltf.castShadow = true; 
+					gltf.receiveShadow = true;
+					scenes[5].add( gltf.scene );
+				} ); 
+
+
+
+
+
+
+
+				
+				/* photo */
+				
+				var RGBLoader = new RGBELoader()
+				.setDataType( THREE.UnsignedByteType )
+				.setPath( './examples/textures/' )
+				.load( 'kiara_9_dusk_1k.hdr', function ( texture ) {
+
+					var envMap = pmremGenerator.fromEquirectangular( texture ).texture;
+
+					scenes[3].background = envMap;
+					scenes[3].environment = envMap;
+
+					texture.dispose();
+					pmremGenerator.dispose();
+
+					var roughnessMipmapper = new RoughnessMipmapper( renderer );
+
+
+				} );
+				
+				/*end_photo*/
+
+
+
+				var content = document.getElementById( 'content' );
+
+				for ( var i = 0; i < 6; i ++ ) {
+
+					var scene = new THREE.Scene();
+
+
+					// make a list item
+					var element = document.createElement( 'div' );
+					element.className = 'list-item';
+
+					var sceneElement = document.createElement( 'div' );
+					element.appendChild( sceneElement );
+
+					var descriptionElement = document.createElement( 'div' );
+					descriptionElement.innerText = 'ОБЪЕКТ ' + ( i + 1 );
+					element.appendChild( descriptionElement );
+
+					// the element that represents the area we want to render the scene
+					scene.userData.element = sceneElement;
+					content.appendChild( element );
+
+					camera = new THREE.PerspectiveCamera( 60, 1, .1, 700 ); // 50, 1, 1, 10  // /fow /растяжение /начало_рендера /конец_рендера
+					//camera.position.z = -2; // 2
+					camera.position.set(10,10,10)
+					scene.userData.camera = camera;
+
+					var controls = new OrbitControls( scene.userData.camera, scene.userData.element );
+
+					controls.minDistance = 3; // 2
+					controls.maxDistance = 10; // 5
+					//controls.enablePan = true;
+					controls.enableZoom = true;
+
+					controls.zoomSpeed = 4;
+					
+					scene.userData.controls = controls;
+
+
+
+					/* photo 	quarry_01_1k	*/
+					var RGBLoader = new RGBELoader()
+					.setDataType( THREE.UnsignedByteType )
+					.setPath( './examples/textures/' )
+					.load( 'kiara_9_dusk_1k.hdr', function ( texture ) {
+
+						var envMap = pmremGenerator.fromEquirectangular( texture ).texture;
+
+						scenes[2].background = envMap;
+						scenes[2].environment = envMap;
+
+						texture.dispose();
+						pmremGenerator.dispose();
+
+						var roughnessMipmapper = new RoughnessMipmapper( renderer );
+
 
 					} );
+					/*end_photo*/
 
-					object.position.y = - 95;
-					scene.add( object );
+					/* photo 	quarry_01_1k	*/
+					var RGBLoader = new RGBELoader()
+					.setDataType( THREE.UnsignedByteType )
+					.setPath( './examples/textures/' )
+					.load( 'kiara_9_dusk_1k.hdr', function ( texture ) {
+
+						var envMap = pmremGenerator.fromEquirectangular( texture ).texture;
+
+						scenes[4].background = envMap;
+						scenes[4].environment = envMap;
+
+						texture.dispose();
+						pmremGenerator.dispose();
+
+						var roughnessMipmapper = new RoughnessMipmapper( renderer );
+
+					} );
+					/*end_photo*/
+
+					/* photo 	quarry_01_1k	*/
+					var RGBLoader = new RGBELoader()
+					.setDataType( THREE.UnsignedByteType )
+					.setPath( './examples/textures/' )
+					.load( 'kiara_9_dusk_1k.hdr', function ( texture ) {
+
+						var envMap = pmremGenerator.fromEquirectangular( texture ).texture;
+
+						scenes[5].background = envMap;
+						scenes[5].environment = envMap;
+
+						texture.dispose();
+						pmremGenerator.dispose();
+
+						var roughnessMipmapper = new RoughnessMipmapper( renderer );
+
+					} );
+					/*end_photo*/
+
+
+
+					
+					
+					scene.add( new THREE.HemisphereLight( 0x222018, 0xD6DBDA, 1.5 ) ); // 0xaaaaaa, 0x444444  // 0xffeeb1, 0x080820, 4 // 0xFFC2B1, 0x080820, 3.5 // 222018
+
+					light = new THREE.DirectionalLight( 0x222018, 1.1 ); // 0xffffff, 0.5 // FFC2B1
+					light.position.set( 100, 100, 100 );
+					light.rotation.set( 30,90,90);
+					//
+					light.castShadow = true;
+					light.shadow.bias = -0.0001; // 0.0001
+					light.shadow.mapSize.width = 1024*4;
+					light.shadow.mapSize.height = 1024*4;
+					scene.add( light ); 
+					//
+					
+					light2 = new THREE.PointLight( 0xffffff, 6, 10 );
+					//var sphere = new THREE.SphereBufferGeometry( 0.5, 16, 8 );
+					//light2.add( new THREE.Mesh( sphere, new THREE.MeshBasicMaterial( { color: 0xff0040 } ) ) );
+					//light2.position.set( -10, 0, 0 );
+					scene.add( light2 ); 
+
+					scenes.push( scene );
+
+							
 
 				}
 
-				var manager = new THREE.LoadingManager( loadModel );
 
-				manager.onProgress = function ( item, loaded, total ) {
 
-					console.log( item, loaded, total );
 
-				};
-
-				// texture
-
-				var textureLoader = new THREE.TextureLoader( manager );
-
-				var texture = textureLoader.load( './examples/textures/uv_grid_opengl.jpg' );
-
-				// model
-
-				function onProgress( xhr ) {
-
-					if ( xhr.lengthComputable ) {
-
-						var percentComplete = xhr.loaded / xhr.total * 100;
-						console.log( 'model ' + Math.round( percentComplete, 2 ) + '% downloaded' );
-
-					}
-
-				}
-
-				function onError() {}
-
-				var loader = new OBJLoader( manager );
-
-				loader.load( './examples/models/obj/male02/male02.obj', function ( obj ) {
-
-					object = obj;
-
-				}, onProgress, onError );
-
-				//
-
-				renderer = new THREE.WebGLRenderer();
+				renderer = new THREE.WebGLRenderer( { canvas: canvas, antialias: true } );
+				renderer.setClearColor( 0xffffff, 1 ); // 0xffffff
 				renderer.setPixelRatio( window.devicePixelRatio );
-				renderer.setSize( window.innerWidth, window.innerHeight );
-				container.appendChild( renderer.domElement );
 
-				document.addEventListener( 'mousemove', onDocumentMouseMove, false );
+				/*photo*/
+				//renderer.setSize( window.innerWidth, window.innerHeight );
+				renderer.toneMapping = THREE.ACESFilmicToneMapping;
+				renderer.toneMappingExposure = 1.1; //
+				renderer.outputEncoding = THREE.sRGBEncoding;
+				//container.appendChild( renderer.domElement );
 
-				//
+				/* реалистичн свет*/
+				renderer.toneMapping = THREE.ReinhardToneMapping;
+				renderer.setSize(window.innerWidth,window.innerHeight);
+				renderer.shadowMap.enabled = true;
+				document.body.appendChild(renderer.domElement);
+				/*end*/
 
-				window.addEventListener( 'resize', onWindowResize, false );
+				var pmremGenerator = new THREE.PMREMGenerator( renderer );
+				pmremGenerator.compileEquirectangularShader();
+				/*
+				controls = new OrbitControls( camera, renderer.domElement );
+				controls.addEventListener( 'change', render ); // use if there is no animation loop
+				controls.minDistance = 2;
+				controls.maxDistance = 7;
+				controls.target.set( 0, 0, - 0.2 );
+				controls.update();
+				*/
+
+				//window.addEventListener( 'resize', onWindowResize, false );
+				/*end_photo*/
+
+
+				
+				/**/
+				/*
+				var re = new THREE.SphereBufferGeometry( 500, 60, 40 ); // 500, 60, 40 
+				// invert the geometry on the x-axis so that all of the faces point inward
+				re.scale( - 1, 1, 1 );
+				
+				var texture = new THREE.TextureLoader().load( 'textures/2294472375_24a3b8ef46_o.jpg' );
+				var material = new THREE.MeshBasicMaterial( { map: texture } );
+
+				mesh = new THREE.Mesh( re, material );
+
+				scenes[3].add( mesh );
+				*/
+				/**/
+				
 
 			}
 
-			function onWindowResize() {
+			function updateSize() {
 
-				windowHalfX = window.innerWidth / 2;
-				windowHalfY = window.innerHeight / 2;
+				var width = canvas.clientWidth;
+				var height = canvas.clientHeight;
 
-				camera.aspect = window.innerWidth / window.innerHeight;
-				camera.updateProjectionMatrix();
+				if ( canvas.width !== width || canvas.height !== height ) {
 
-				renderer.setSize( window.innerWidth, window.innerHeight );
+					renderer.setSize( width, height, false );
 
-			}
-
-			function onDocumentMouseMove( event ) {
-
-				mouseX = ( event.clientX - windowHalfX ) / 2;
-				mouseY = ( event.clientY - windowHalfY ) / 2;
+				}
 
 			}
-
-			//
 
 			function animate() {
 
-				requestAnimationFrame( animate );
 				render();
+
+				
+				light.position.set( 
+				  camera.position.x + 100,
+				  camera.position.y + 100,
+				  camera.position.z + 100,
+				);
+
+				requestAnimationFrame( animate );
+
+				
+				
 
 			}
 
 			function render() {
 
-				camera.position.x += ( mouseX - camera.position.x ) * .05;
-				camera.position.y += ( - mouseY - camera.position.y ) * .05;
+				updateSize();
 
-				camera.lookAt( scene.position );
+				canvas.style.transform = `translateY(${window.scrollY}px)`;
 
-				renderer.render( scene, camera );
+				renderer.setClearColor( 0xeaeaea ); // цвет основного 2д бэка 0xffffff
+				renderer.setScissorTest( false );
+				renderer.clear();
 
+				renderer.setClearColor( 0xeaeaea ); // цвет бэка в 3д окне // 0xe0e0e0
+				renderer.setScissorTest( true );
+
+				scenes.forEach( function ( scene ) {
+					
+					// so something moves
+					scene.children[ 0 ].rotation.y = Date.now() * 0.001;
+					
+					// get the element that is a place holder for where we want to
+					// draw the scene
+					var element = scene.userData.element;
+
+					// get its position relative to the page's viewport
+					var rect = element.getBoundingClientRect();
+
+					// check if it's offscreen. If so skip it
+					if ( rect.bottom < 0 || rect.top > renderer.domElement.clientHeight ||
+						 rect.right < 0 || rect.left > renderer.domElement.clientWidth ) {
+
+						return; // it's off screen
+
+					}
+
+					// set the viewport
+					var width = rect.right - rect.left;
+					var height = rect.bottom - rect.top;
+					var left = rect.left;
+					var bottom = renderer.domElement.clientHeight - rect.bottom;
+
+					renderer.setViewport( left, bottom, width, height );
+					renderer.setScissor( left, bottom, width, height );
+
+					var camera = scene.userData.camera;
+
+					//camera.aspect = width / height; // not changing in this example
+					//camera.updateProjectionMatrix();
+
+					//scene.userData.controls.update();
+
+
+					/* движение источника поинт*/
+					var time = Date.now() * 0.0005;
+					var delta = clock.getDelta();
+	
+
+					light2.position.x = Math.cos( time * 3/2 ) * 3;
+					light2.position.y = Math.sin( time * 5/2 ) * 4;
+					light2.position.z = Math.sin( time * 7/2 ) * 3;
+					/**/
+
+
+
+					renderer.render( scene, camera );
+
+				} );
+
+				
 			}
 
 		</script>
